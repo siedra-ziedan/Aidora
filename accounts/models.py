@@ -26,7 +26,7 @@ class RefugeeProfile(models.Model):
     date_of_birth = models.DateField(null=True,blank=True)
     location = models.CharField(max_length=255)
     sector_name = models.CharField(max_length=255, null=True, blank=True)
-    profile_image = models.CharField(max_length=255, null=True, blank=True)  # يمكن تغييره لـ ImageField لاحقاً
+    profile_image = models.ImageField(upload_to='profiles/', null=True, blank=True)
     consent_given = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -59,7 +59,7 @@ class VolunteerProfile(models.Model):
     start_date = models.DateField(null=True,blank=True)
     expected_duration = models.CharField(max_length=50)
     points = models.IntegerField(default=0)
-    profile_image = models.CharField(max_length=255, null=True, blank=True)
+    profile_image = models.ImageField(upload_to='profiles/', null=True, blank=True)
     qr_code = models.CharField(max_length=100, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
