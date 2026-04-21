@@ -148,4 +148,14 @@ class VolunteerApplication(models.Model):
         return f"{self.user} - {self.organization} ({self.status})"
     
 
-    
+class Notification(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    notification_type = models.CharField(max_length=50)
+
+    def str(self):
+         return f"Notification for {self.user.username}: {self.message}"
+
+     

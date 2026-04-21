@@ -386,7 +386,34 @@ def volunteer_profile_view(request):
 volunteer_profile_view.allowed_roles = ["volunteer"]
 
 
+from rest_framework.views import APIView
+class UploadProfileImageAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsRole]
+    allowed_roles = ["volunteer"]
 
+    def patch(self, request):
+        profile = request.user.volunteer_profile
+
+        image = request.FILES.get('profile_image')
+
+        if not image:
+            return Response(
+                {"error": "No image provided"},
+                status=400
+            )
+
+        # 🔥 حذف الصورة القديمة (إذا موجودة)
+        if profile.profile_image:
+            profile.profile_image.delete(save=False)
+
+        # 🔥 حفظ الصورة الجديدة
+        profile.profile_image = image
+        profile.save()
+
+        return Response({
+            "message": "Profile image updated successfully",
+            "profile_image": request.build_absolute_uri(profile.profile_image.url)
+        })
 
 
 

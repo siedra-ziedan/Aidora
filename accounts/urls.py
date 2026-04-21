@@ -12,7 +12,7 @@ from .views import (
    verify_pin,
    volunteer_qr,
    volunteer_profile_view,
-
+   UploadProfileImageAPIView
 )
 
 urlpatterns = [
@@ -51,7 +51,7 @@ urlpatterns = [
     path('verify-pin/', verify_pin, name='verify-pin'),
     path("volunteers/<int:volunteer_id>/qr/", volunteer_qr),
     path("volunteer/profile/view", volunteer_profile_view), #Get
-
+    path('profile/upload-image/',UploadProfileImageAPIView.as_view()),
 
     ]
 

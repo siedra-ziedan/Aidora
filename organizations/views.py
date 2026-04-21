@@ -213,7 +213,9 @@ class TaskReportAPIView(APIView):
       return Response(serializer.data)
     
 from .serializers import AssignTaskGetSerializer, AssignTaskResponseSerializer
+from accounts.models import Notification
 from accounts.models import VolunteerProfile
+
 class AssignTaskAPIView(APIView):
     permission_classes = [IsAuthenticated, IsRole]
     allowed_roles = ["organization"]
@@ -224,12 +226,10 @@ class AssignTaskAPIView(APIView):
             id=request_id,
             organization=request.user.organization
         )
-
         serializer = AssignTaskGetSerializer(
             service_request,
             context={'request': request}
         )
-
         return Response(serializer.data)
 
     def post(self, request, request_id):
@@ -253,6 +253,7 @@ class AssignTaskAPIView(APIView):
                 status=400
             )
 
+        # الحصول على بيانات المتطوع والعنوان
         volunteer_id = request.data.get("volunteer_id")
         title = request.data.get("title")
         instructions = request.data.get("instructions")
@@ -263,6 +264,7 @@ class AssignTaskAPIView(APIView):
             organization=request.user.organization
         )
 
+        # إنشاء المهمة
         task = Task.objects.create(
             service_request_id=service_request,
             volunteer_id=volunteer,
@@ -270,9 +272,19 @@ class AssignTaskAPIView(APIView):
             instructions=instructions
         )
 
+        # إشعار للمتطوع (إشعار إسناد المهمة)
+        notification_message = f"You can pick up the service request {service_request.service.name}. The task has been assigned to {volunteer.full_name}."
+        
+        # إضافة نوع الإشعار "assigned"
+        Notification.objects.create(
+            user=volunteer.user,
+            message=notification_message,
+            notification_type="assigned"  # نوع الإشعار "assigned"
+        )
+
+        # الرد مع البيانات
         serializer = AssignTaskResponseSerializer(task)
         return Response(serializer.data, status=201)    
-    
 
     
 from .serializers import TaskSerializer
@@ -307,6 +319,34 @@ class TaskListAPIView(APIView):
     
 
 
+class ReassignTaskAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsRole]
+    allowed_roles = ["organization"]
+
+    def patch(self, request, task_id):
+        task = get_object_or_404(
+            Task,
+            id=task_id,
+            service_request_id__organization=request.user.organization
+        )
+
+        # 🔒 فقط إذا كانت failed
+        if task.status != 'failed':
+            return Response(
+                {"error": "Only failed tasks can be reassigned"},
+                status=400
+            )
+
+        # 🔥 رجعها pending + احذف السبب
+        task.status = 'pending'
+        task.rejection_reason = None
+        task.save()
+
+        return Response({
+            "message": "Task reassigned successfully",
+            "task_id": task.id,
+            "status": task.status
+        })
 
 
 
