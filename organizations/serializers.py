@@ -349,6 +349,73 @@ class TaskSerializer(serializers.ModelSerializer):
         return data
 
 
+#قسم شهد
+from rest_framework import serializers
+from .models import Service
+from .models import Organization, Service, TargetGroup, OrganizationService
+from .models import OrganizationTargetGroup
 
 
+# Serializer للخدمات
+class ServiceTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = ['service_type','icon']  
+
+
+#لعرض المنظمات
+class OrganizationCardSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Organization
+        fields = [ 'name', "logo","id"]
+
+#لعرض معلومات المنظمة
+class ServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = ["name", "description" ,"icon"]  # هنا الاسم والوصف فقط
+
+
+class TargetGroupSerializer(serializers.ModelSerializer):
+    
+    name = serializers.CharField(source="target_group.name")
+
+    class Meta:
+        model = OrganizationTargetGroup
+        fields = ["name"]
+
+class OrganizationDetailSerializer(serializers.ModelSerializer):
+    services = serializers.SerializerMethodField()
+    target_groups = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organization
+        fields = [
+            "name",
+            "title",
+            "logo",
+            "about",
+            "official_website",
+            "contact_email",
+            "impact_image1",
+            "impact_image2",
+            "services",
+            "target_groups",
+        ]
+
+    def get_services(self, obj):
+        org_services = OrganizationService.objects.filter(organization=obj)
+        return ServiceSerializer([os.service for os in org_services], many=True).data
+
+    def get_target_groups(self, obj):
+        org_targets = OrganizationTargetGroup.objects.filter(organization=obj)
+        return [ot.target_group.name for ot in org_targets]
+
+
+#للفلترة حسب الخدمة
+class OrganizationSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = ["name", "logo","id"]  # بس الاسم واللوغو        
 

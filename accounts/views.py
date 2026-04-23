@@ -416,4 +416,40 @@ class UploadProfileImageAPIView(APIView):
         })
 
 
+#شهد
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import RefugeeProfile
+from .serializers import RefugeeProfileSerializer
+from .models import Notification
+from .serializers import NotificationSerializer
 
+class RefugeeProfileAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsRole]
+    allowed_roles = ["refugee "]
+    def get(self, request):
+        # مؤقت للاختبار
+        #refugee = RefugeeProfile.objects.first()
+        
+        refugee = request.user.refugee_profile
+        serializer = RefugeeProfileSerializer(refugee, context={"request": request})
+        return Response(serializer.data)
+
+from django.contrib.auth import get_user_model
+#User = get_user_model()
+
+class NotificationListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        #test_user = User.objects.first()
+        #notifications = Notification.objects.filter(user=test_user).order_by('-created_at')
+        notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+        serializer = NotificationSerializer(notifications, many=True)
+
+        return Response({
+            "notifications": serializer.data
+        })        
