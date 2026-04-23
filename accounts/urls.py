@@ -14,6 +14,9 @@ from .views import (
    volunteer_profile_view,
    UploadProfileImageAPIView
 )
+from .views import RefugeeProfileAPIView
+from .views import NotificationListAPIView
+
 
 urlpatterns = [
     # JWT endpoints
@@ -53,7 +56,14 @@ urlpatterns = [
     path("volunteer/profile/view", volunteer_profile_view), #Get
     path('profile/upload-image/',UploadProfileImageAPIView.as_view()),
 
+#شهد
+    path('profile/refugee/', RefugeeProfileAPIView.as_view(), name='refugee-profile'),
+    path('notifications/', NotificationListAPIView.as_view()),
+   
+   
     ]
+
+
 
 
 

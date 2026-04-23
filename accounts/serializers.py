@@ -300,3 +300,78 @@ class VolunteerProfileViewSerializer(serializers.ModelSerializer):
 
     def get_join_date(self, obj):
         return obj.created_at.strftime("%b %Y")
+
+
+#شهد
+from rest_framework import serializers
+from .models import RefugeeProfile
+from .models import Notification
+
+class RefugeeProfileSerializer(serializers.ModelSerializer):
+    refugee_id = serializers.SerializerMethodField()
+    profile_image=serializers.SerializerMethodField()
+    children_count = serializers.SerializerMethodField()
+    elderly_count = serializers.SerializerMethodField()
+    disabled_count = serializers.SerializerMethodField()
+    women_count = serializers.SerializerMethodField()
+    total_family_members = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RefugeeProfile
+        fields = [
+            'refugee_id',
+            'profile_image',
+            'full_name', 
+            'location',
+            'sector_name',
+            'children_count',
+            'elderly_count',
+            'disabled_count',
+            'women_count',
+            'total_family_members',
+        ]
+
+    def get_refugee_id(self, obj):
+        return f"ID : #{obj.id}"    
+     
+    def get_profile_image(self, obj):
+        request = self.context.get("request")
+        if obj.profile_image:
+            return request.build_absolute_uri(obj.profile_image.url)
+        return None
+
+
+    def get_family_count(self, obj, category_name):
+        member = obj.family_members.filter(category__name__iexact=category_name).first()
+        return member.count if member else 0
+
+    def get_children_count(self, obj):
+        return self.get_family_count(obj, 'Child')
+
+    def get_elderly_count(self, obj):
+        return self.get_family_count(obj, 'Elderly')
+
+    def get_disabled_count(self, obj):
+        return self.get_family_count(obj, 'Disabled')
+
+    def get_women_count(self, obj):
+        return self.get_family_count(obj, 'Women')
+
+    def get_total_family_members(self, obj):
+        return sum(member.count for member in obj.family_members.all())
+
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    created_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notification
+        fields = [
+            "message",
+            "created_at",
+            "notification_type",
+        ]
+
+    def get_created_at(self, obj):
+        return obj.created_at.strftime("%b %d, %Y • %I:%M %p")                

@@ -350,6 +350,58 @@ class ReassignTaskAPIView(APIView):
 
 
 
+#قسم شهد
+from django.shortcuts import render
+from rest_framework import generics
+from rest_framework.generics import RetrieveAPIView
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.generics import ListAPIView
+from .models import Service
+from .models import Organization
+from .serializers import ServiceTypeSerializer
+from .serializers import OrganizationCardSerializer
+from .serializers import OrganizationDetailSerializer
+from .serializers import OrganizationSimpleSerializer
+
+class ServiceTypeListAPIView(ListAPIView):
+    serializer_class = ServiceTypeSerializer
+
+    def get_queryset(self):
+        # نرجع فقط الـ 10 أنواع الأساسية بدون تكرار
+        return Service.objects.order_by('service_type').distinct('service_type')
+
+class OrganizationsByServiceTypeAPIView(APIView):
+    def get(self, request, service_type):
+        organizations = Organization.objects.filter(
+            organization_services__service__service_type__iexact=service_type
+        ).distinct()
+        
+
+        data = [
+            {
+                "name": org.name,
+                "logo": request.build_absolute_uri(org.logo.url) if org.logo else None,
+                "id" :org.id,
+            }
+            for org in organizations
+        ]
+
+        return Response(data)
+
+class OrganizationCardListAPIView(ListAPIView):
+    serializer_class = OrganizationCardSerializer
+
+    def get_queryset(self):
+        return Organization.objects.all()[:6]
+
+
+class OrganizationDetailAPIView(generics.RetrieveAPIView):
+
+    queryset = Organization.objects.all()
+    serializer_class = OrganizationDetailSerializer   
+
+
 
 
 

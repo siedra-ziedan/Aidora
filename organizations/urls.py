@@ -2,7 +2,12 @@ from django.urls import path
 from .views import OrganizationServicesView 
 from .views import OrganizationApplicationsAPIView ,OrganizationDashboardAPIView, TaskReportAPIView ,AssignTaskAPIView,TaskListAPIView
 from .views import ReassignTaskAPIView
+#شهد
 
+from .views import ServiceTypeListAPIView
+from .views import OrganizationCardListAPIView
+from .views import OrganizationDetailAPIView
+from .views import OrganizationsByServiceTypeAPIView
 
 
 urlpatterns = [
@@ -14,9 +19,23 @@ urlpatterns = [
     path('tasks/<int:pk>/report/', TaskReportAPIView.as_view()),
     path('assign-task/<int:request_id>/', AssignTaskAPIView.as_view()),
     path('tasks/<int:task_id>/reassign/', ReassignTaskAPIView.as_view()),
+#شهد
+    #للخدمات
+    path('services/', ServiceTypeListAPIView.as_view(), name='service-type-list'),
+    #فلترة منظمة حسب الخدمة
+    path('filter/<str:service_type>/', OrganizationsByServiceTypeAPIView.as_view()),
+    #للمنظمات الستة
+    path('cards/', OrganizationCardListAPIView.as_view()),
+    #تفاصيل المنظمة
+    path('<int:pk>/', OrganizationDetailAPIView.as_view(),
+         name='organization-detail'),
 
 
 
 
 
 ]
+
+
+
+
