@@ -403,6 +403,23 @@ class OrganizationDetailAPIView(generics.RetrieveAPIView):
 
 
 
+from .serializers import OrganizationProfileSerializer
+class MyOrganizationView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        user = request.user
+
+        # تحقق إنو المستخدم دوره organization
+        if user.role != 'organization':
+            return Response({"error": "You are not an organization user"}, status=403)
+
+        try:
+            organization = user.organization
+        except Organization.DoesNotExist:
+            return Response({"error": "No organization found for this user"}, status=404)
+
+        serializer = OrganizationProfileSerializer(organization)
+        return Response(serializer.data)
 
 

@@ -419,3 +419,7 @@ class OrganizationSimpleSerializer(serializers.ModelSerializer):
         model = Organization
         fields = ["name", "logo","id"]  # بس الاسم واللوغو        
 
+class OrganizationProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = ['name', 'logo']
