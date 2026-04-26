@@ -74,6 +74,7 @@ class ApplicationMetaSerializer(serializers.ModelSerializer):
     class Meta:
         model = VolunteerApplication
         fields = [
+            
             'service_name',
             'service_icon',
             'created_at',
@@ -84,14 +85,7 @@ class ApplicationMetaSerializer(serializers.ModelSerializer):
     def get_service_name(self, obj):
         return [s.service.name for s in obj.selected_services.all()]
     def get_service_icon(self, obj):
-      request = self.context.get('request')
-
-      icons = []
-      for s in obj.selected_services.all():
-        if s.service.icon:
-            icons.append(request.build_absolute_uri(s.service.icon.url))
-
-      return icons
+         return [s.service.icon for s in obj.selected_services.all()]
 
     # 🔹 date format
     def get_created_at(self, obj):
@@ -158,9 +152,6 @@ class VolunteerApplicationDetailSerializer(serializers.ModelSerializer):
         # 🔹 flatten meta
         meta = data.pop('meta', {})
         data.update(meta)
-
-        # 🔹 ID format
-        data['id'] = f"ID {str(instance.id).zfill(4)}"
 
         return data
 

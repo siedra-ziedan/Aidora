@@ -3,7 +3,7 @@ class ServiceRequest(models.Model):
 
     URGENCY_CHOICES = [
         ('normal', 'Normal'),
-        ('high', 'High'),
+        ('urgent', 'Urgent'),
         ('critical', 'Critical'),
     ]
 

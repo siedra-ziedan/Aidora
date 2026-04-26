@@ -100,6 +100,7 @@ class VolunteerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = VolunteerProfile
         fields = [
+           
             'gender',
             'date_of_birth',
             'nationality',
@@ -274,7 +275,7 @@ class VolunteerQRSerializer(serializers.ModelSerializer):
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
         qr.add_data(obj.qr_code)
         qr.make(fit=True)
-
+    
         img = qr.make_image(fill_color="black", back_color="white")
         buffer = BytesIO()
         img.save(buffer, format="PNG")
@@ -287,6 +288,7 @@ class VolunteerProfileViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = VolunteerProfile
         fields = [
+            "id",
             "full_name",
             "profile_image",
             "tasks_count",

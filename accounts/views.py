@@ -338,22 +338,21 @@ class VolunteerApplicationDetailView(RetrieveAPIView):
             raise NotFound("No application found for this organization.")
 
 
-
-
 from .serializers import VolunteerQRSerializer
-import uuid
 import uuid
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @permission_classes([IsRole])
 def volunteer_qr(request, volunteer_id):
-    if not request.user.is_staff and request.user.id != volunteer_id:
-        return Response({"error": "You are not allowed to view this QR."}, status=403)
 
     try:
-        profile = VolunteerProfile.objects.get(user_id=volunteer_id)
+        profile = VolunteerProfile.objects.get(id=volunteer_id)
     except VolunteerProfile.DoesNotExist:
         return Response({"error": "Volunteer not found"}, status=404)
+
+    # ✅ بعد ما صار موجود فينا نستخدمه
+    if not request.user.is_staff and profile.user.id != request.user.id:
+        return Response({"error": "You are not allowed to view this QR."}, status=403)
 
     # توليد QR نصي إذا مش موجود
     if not profile.qr_code:
