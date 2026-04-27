@@ -9,8 +9,7 @@ from .serializers import ServiceRequestCreateSerializer
 from accounts.permissions import IsRole
 from .permissions import IsProfileCompleted
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-@permission_classes([IsRole,IsProfileCompleted])
+@permission_classes([IsAuthenticated, IsProfileCompleted,IsRole])
 def service_request_form(request, organization_id, service_id):
     """
     API لعرض الاستمارة وإرسال طلب خدمة.
@@ -254,8 +253,8 @@ class OrganizationServicesAPIView(APIView):
 class CreateRequestAPIView(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsRole,IsProfileCompleted]
-    allowed_roles = ["refugee "]
-    
+    allowed_roles = ["refugee"]
+    46
     def post(self, request, pk):
        
         organization = Organization.objects.filter(id=pk).first()
