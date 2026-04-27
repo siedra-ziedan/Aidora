@@ -253,7 +253,7 @@ class OrganizationServicesAPIView(APIView):
 
 class CreateRequestAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    permission_classes = [IsRole]
+    permission_classes = [IsRole,IsProfileCompleted]
     allowed_roles = ["refugee "]
     
     def post(self, request, pk):
