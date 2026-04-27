@@ -7,9 +7,10 @@ from organizations.models import Service, Organization, OrganizationService
 from .models import ServiceRequest
 from .serializers import ServiceRequestCreateSerializer
 from accounts.permissions import IsRole
+from .permissions import IsProfileCompleted
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
-@permission_classes([IsRole])
+@permission_classes([IsRole,IsProfileCompleted])
 def service_request_form(request, organization_id, service_id):
     """
     API لعرض الاستمارة وإرسال طلب خدمة.
@@ -188,56 +189,6 @@ class TaskUpdateAPIView(APIView):
       return Response(serializer.data)
     
     
-from .serializers import ServiceRequestCreateSecondSerializer
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-@permission_classes([IsRole])
-def service_request_form_two(request, organization_id):
-    """
-    GET: يعرض قائمة الخدمات التابعة للمنظمة (id + name)
-    POST: ينشئ طلب خدمة بعد اختيار واحدة من هذه الخدمات
-    """
-    try:
-        organization = Organization.objects.get(id=organization_id)
-    except Organization.DoesNotExist:
-        return Response({"error": "Organization not found"}, status=404)
-
-    if request.method == "GET":
-        # جلب جميع الخدمات المرتبطة بالمنظمة
-        services = OrganizationService.objects.filter(organization=organization)
-        data = [{"id": s.service.id, "name": s.service.name} for s in services]
-        return Response({"services": data})
-
-    if request.method == "POST":
-        refugee = request.user.refugee_profile
-        service_id = request.data.get("service_id")  # النازح يرسل id الخدمة
-        if not service_id:
-            return Response({"error": "service_id is required"}, status=400)
-
-        # تحقق أن الخدمة ضمن المنظمة
-        if not OrganizationService.objects.filter(
-            organization=organization, service_id=service_id
-        ).exists():
-            return Response(
-                {"error": "This service does not belong to the organization."},
-                status=400
-            )
-
-        service = Service.objects.get(id=service_id)
-        serializer = ServiceRequestCreateSecondSerializer(data=request.data)
-        if serializer.is_valid():
-            request_obj = serializer.save(
-                refugee=refugee,
-                service=service,
-                organization=organization,
-                status="pending"
-            )
-            return Response({
-                "message": "Request sent successfully",
-                "request_id": request_obj.id
-            }, status=201)
-        return Response(serializer.errors, status=400)    
-service_request_form_two.allowed_roles = ["refugee"]
     
 #شهد
 from django.shortcuts import render

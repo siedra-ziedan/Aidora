@@ -14,8 +14,7 @@ from .views import RequestDetailsAPIView
 from .views import ApproveButtonAPIView
 from .views import RejectButtonAPIView
 urlpatterns = [
-path("organizations/<int:organization_id>/services/<int:service_id>/request/",service_request_form),
-path("organizations/<int:organization_id>/request/", service_request_form_two),
+path("org/<int:organization_id>/services/<int:service_id>/request/",service_request_form),
 path('volunteer/home/', VolunteerHomeAPIView.as_view()),
 path('volunteer/tasks/', VolunteerTasksAPIView.as_view()),
 path('volunteer/tasks/<int:id>/update/', TaskUpdateAPIView.as_view()),

@@ -96,19 +96,6 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
     
 
 
-class ServiceRequestCreateSecondSerializer(serializers.ModelSerializer):
-    service_id = serializers.IntegerField(write_only=True)
-
-    class Meta:
-        model = ServiceRequest
-        fields = [
-            'service_id',
-            'urgency_level',
-            'description',
-            'location',
-            'family_members'
-        ]   
-
 #شهد
 from rest_framework import serializers
 from .models import ServiceRequest

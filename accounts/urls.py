@@ -47,8 +47,8 @@ urlpatterns = [
             'patch': 'update_availability'
         })
     ),
-    path('organizations/<int:id>/volunteer/applications/',submit_volunteer_application, name='volunteer-application'),
-    path('organizations/<int:id>/volunteer/application/details/',VolunteerApplicationDetailView.as_view(),name='volunteer-application-details'),
+    path('org/<int:id>/volunteer/applications/',submit_volunteer_application, name='volunteer-application'),
+    path('org/<int:id>/volunteer/application/details/',VolunteerApplicationDetailView.as_view(),name='volunteer-application-details'),
     path('me/', auth_me, name='auth-me'),
     path('resend-pin/', resend_pin, name='resend-pin'),
     path('verify-pin/', verify_pin, name='verify-pin'),
