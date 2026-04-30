@@ -388,6 +388,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             "message",
             "created_at",
             "notification_type",
+            "is_read",
         ]
 
     def get_created_at(self, obj):

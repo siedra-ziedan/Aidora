@@ -438,11 +438,19 @@ class NotificationListAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        #test_user = User.objects.first()
-        #notifications = Notification.objects.filter(user=test_user).order_by('-created_at')
-        notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-        serializer = NotificationSerializer(notifications, many=True)
+
+        notifications = Notification.objects.filter(
+            user=request.user
+        ).order_by('-created_at')
+
+        # 🔥 خلي كل الإشعارات مقروءة
+        notifications.update(is_read=True)
+
+        serializer = NotificationSerializer(
+            notifications,
+            many=True
+        )
 
         return Response({
             "notifications": serializer.data
-        })        
+        })
