@@ -100,24 +100,29 @@ def register_volunteer(request):
 
     return Response(serializer.errors, status=400)
 
-@api_view(['PATCH'])
-@permission_classes([IsRole])
-def complete_refugee_profile(request):
-    profile = RefugeeProfile.objects.get(user=request.user)
-    serializer = RefugeeProfileCompleteSerializer(
-        profile,
-        data=request.data
-    )
+from rest_framework.views import APIView
 
-    if serializer.is_valid():
-        serializer.save()
+class CompleteRefugeeProfileView(APIView):
+    permission_classes = [IsAuthenticated, IsRole]
+    allowed_roles = ["refugee"]
 
-        return Response({"message": "Profile completed"})
+    def patch(self, request):
+        try:
+            profile = RefugeeProfile.objects.get(user=request.user)
+        except RefugeeProfile.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=404)
 
-    return Response(serializer.errors, status=400)
-complete_refugee_profile.allowed_roles = ["volunteer"]
+        serializer = RefugeeProfileCompleteSerializer(
+            profile,
+            data=request.data,
+            partial=True
+        )
 
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Profile completed"})
 
+        return Response(serializer.errors, status=400)
 class VolunteerProfileViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsRole]
@@ -209,45 +214,34 @@ def submit_volunteer_application(request, id):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def auth_me(request):
-
     user = request.user
-
     profile_completed = False
-    application_status = None   # الافتراضي null
+
+    response_data = {
+        "role": user.role,
+        "profile_completed": False,
+    }
 
     if user.role == "refugee":
-
         profile = getattr(user, "refugee_profile", None)
-
         if profile:
-            profile_completed = profile.profile_completed
+            response_data["profile_completed"] = profile.profile_completed
 
-        # النازح لا يملك application_status
-        application_status = None
+        # ❌ ما منضيف application_status
 
     elif user.role == "volunteer":
-
         profile = getattr(user, "volunteer_profile", None)
-
         if profile:
-            profile_completed = profile.profile_completed
+            response_data["profile_completed"] = profile.profile_completed
 
-        # جلب آخر طلب تطوع
         application = VolunteerApplication.objects.filter(user=user).order_by('-id').first()
+        response_data["application_status"] = application.status if application else None
 
-        if application:
-            application_status = application.status
+    return Response(response_data)
 
-    return Response({
-        "role": user.role,
-        "profile_completed": profile_completed,
-        "application_status": application_status
-    })
 
 
 

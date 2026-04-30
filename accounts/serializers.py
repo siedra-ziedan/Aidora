@@ -65,17 +65,23 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 
-class RefugeeProfileCompleteSerializer(serializers.Serializer):
+from rest_framework import serializers
 
+class FamilyMemberItemSerializer(serializers.Serializer):
+    type = serializers.CharField()
+    count = serializers.IntegerField(min_value=0)
+
+from .models import FamilyCategory
+class RefugeeProfileCompleteSerializer(serializers.Serializer):
     gender = serializers.CharField()
     date_of_birth = serializers.DateField()
     location = serializers.CharField()
-    sector_name = serializers.CharField(required=False)
+    sector_name = serializers.CharField(required=False, allow_null=True)
     consent_given = serializers.BooleanField()
-    family_members = serializers.ListField(child=serializers.DictField())
+    family_members = FamilyMemberItemSerializer(many=True)
 
     def update(self, instance, validated_data):
-
+        # تحديث البيانات الأساسية
         instance.gender = validated_data["gender"]
         instance.date_of_birth = validated_data["date_of_birth"]
         instance.location = validated_data["location"]
@@ -84,18 +90,27 @@ class RefugeeProfileCompleteSerializer(serializers.Serializer):
         instance.profile_completed = True
         instance.save()
 
+        # 🔥 حذف القديم (مهم حتى ما يتكرر)
+        instance.family_members.all().delete()
+
         family_members = validated_data["family_members"]
 
         for member in family_members:
+            # تحويل type → category
+            category = FamilyCategory.objects.filter(name=member["type"]).first()
+
+            if not category:
+                raise serializers.ValidationError(
+                    f"Invalid family member type: {member['type']}"
+                )
 
             RefugeeFamilyMember.objects.create(
                 refugee=instance,
-                family_category_id=member["category_id"],
+                family_category=category,
                 count=member["count"]
             )
-        
-        return instance
 
+        return instance
 class VolunteerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = VolunteerProfile

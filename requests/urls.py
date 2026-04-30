@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import service_request_form
+from .views import ServiceRequestFormView
 from .views import VolunteerHomeAPIView , VolunteerTasksAPIView , TaskUpdateAPIView
 #شهد
 from .views import OrganizationServicesAPIView
@@ -14,7 +14,7 @@ from .views import RequestDetailsAPIView
 from .views import ApproveButtonAPIView
 from .views import RejectButtonAPIView
 urlpatterns = [
-path("org/<int:organization_id>/services/<int:service_id>/request/",service_request_form),
+path("org/<int:organization_id>/services/<int:service_id>/request/",ServiceRequestFormView.as_view()),
 path('volunteer/home/', VolunteerHomeAPIView.as_view()),
 path('volunteer/tasks/', VolunteerTasksAPIView.as_view()),
 path('volunteer/tasks/<int:id>/update/', TaskUpdateAPIView.as_view()),

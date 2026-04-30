@@ -8,44 +8,57 @@ from .models import ServiceRequest
 from .serializers import ServiceRequestCreateSerializer
 from accounts.permissions import IsRole
 from .permissions import IsProfileCompleted
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated, IsProfileCompleted,IsRole])
-def service_request_form(request, organization_id, service_id):
-    """
-    API لعرض الاستمارة وإرسال طلب خدمة.
-    GET: يعرض اسم الخدمة ووصفها حسب المنظمة.
-    POST: ينشئ طلب خدمة بعد التحقق أن الخدمة مرتبطة بالمنظمة.
-    """
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
-    try:
-        organization = Organization.objects.get(id=organization_id)
-    except Organization.DoesNotExist:
-        return Response({"error": "Organization not found"}, status=404)
+class ServiceRequestFormView(APIView):
+    permission_classes = [IsAuthenticated, IsProfileCompleted, IsRole]
+    allowed_roles = ["refugee"]
+    def get(self, request, organization_id, service_id):
+        try:
+            organization = Organization.objects.get(id=organization_id)
+        except Organization.DoesNotExist:
+            return Response({"error": "Organization not found"}, status=404)
 
-    # تحقق أن الخدمة تابعة للمنظمة
-    if not OrganizationService.objects.filter(
-        organization=organization,
-        service_id=service_id
-    ).exists():
-        return Response(
-            {"error": "This service does not belong to the organization."},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        # تحقق أن الخدمة تابعة للمنظمة
+        if not OrganizationService.objects.filter(
+            organization=organization,
+            service_id=service_id
+        ).exists():
+            return Response(
+                {"error": "This service does not belong to the organization."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    service = Service.objects.get(id=service_id)
+        service = Service.objects.get(id=service_id)
 
-    # GET: عرض بيانات الخدمة
-    if request.method == "GET":
         return Response({
             "service_name": service.name,
             "service_description": service.description
         })
 
-    # POST: إرسال طلب الخدمة
-    if request.method == "POST":
+    def post(self, request, organization_id, service_id):
+        try:
+            organization = Organization.objects.get(id=organization_id)
+        except Organization.DoesNotExist:
+            return Response({"error": "Organization not found"}, status=404)
+
+        if not OrganizationService.objects.filter(
+            organization=organization,
+            service_id=service_id
+        ).exists():
+            return Response(
+                {"error": "This service does not belong to the organization."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        service = Service.objects.get(id=service_id)
         refugee = request.user.refugee_profile
 
         serializer = ServiceRequestCreateSerializer(data=request.data)
+
         if serializer.is_valid():
             request_obj = serializer.save(
                 refugee=refugee,
@@ -60,8 +73,8 @@ def service_request_form(request, organization_id, service_id):
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-service_request_form.allowed_roles = ["refugee"]
-    
+
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Count, Q

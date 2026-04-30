@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import login_api ,logout_view, register_refugee , register_volunteer ,submit_volunteer_application,auth_me
-from .views import complete_refugee_profile 
+from .views import CompleteRefugeeProfileView 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -26,7 +26,7 @@ urlpatterns = [
     path('logout/', logout_view),
     path('register/refugee/', register_refugee),
     path('register/volunteer/', register_volunteer),
-    path('refugees/complete-profile/', complete_refugee_profile),
+    path('refugees/complete-profile/', CompleteRefugeeProfileView.as_view()),
     path(
         'volunteer/profile/',
         VolunteerProfileViewSet.as_view({
