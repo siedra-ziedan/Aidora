@@ -14,39 +14,50 @@ class RegisterSerializer(serializers.Serializer):
     phone_number = serializers.CharField()
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+    accept_terms = serializers.BooleanField()  
 
     def validate_email(self, value):
-        user = User.objects.filter(email=value).first()
-        if user:
+        if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Account already exists with this email")
         return value
 
+    def validate(self, data):
+        if data["password"] != data["confirm_password"]:
+            raise serializers.ValidationError("Passwords do not match")
+
+        if not data.get("accept_terms"):
+            raise serializers.ValidationError("You must accept the terms and conditions")
+
+        return data
+
     def create(self, validated_data):
         role = self.context.get("role")
-        email = validated_data["email"]
 
-        # إنشاء المستخدم
+        validated_data.pop("confirm_password")
+
         user = User.objects.create_user(
-            username=email,
-            email=email,
+            username=validated_data["email"],
+            email=validated_data["email"],
             password=validated_data["password"],
-            role=role
+            role=role,
+            accept_terms=validated_data["accept_terms"]  # 👈 مهم
         )
 
-        # إنشاء بروفايل فارغ حسب الدور
         if role == "refugee":
-          profile = user.refugee_profile
-          profile.full_name = validated_data["full_name"]
-          profile.phone_number = validated_data["phone_number"]
-          profile.profile_completed = False
-          profile.save()
+            profile = user.refugee_profile
+            profile.full_name = validated_data["full_name"]
+            profile.phone_number = validated_data["phone_number"]
+            profile.profile_completed = False
+            profile.save()
 
         elif role == "volunteer":
-           profile = user.volunteer_profile  # جاي من الـ signal
-           profile.full_name = validated_data["full_name"]
-           profile.phone_number = validated_data["phone_number"]
-           profile.profile_completed = False
-           profile.save()
+            profile = user.volunteer_profile
+            profile.full_name = validated_data["full_name"]
+            profile.phone_number = validated_data["phone_number"]
+            profile.profile_completed = False
+            profile.save()
+
         return user
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

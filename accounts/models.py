@@ -12,6 +12,7 @@ class User(AbstractUser):
         ('volunteer', 'Volunteer'),
         ('organization', 'Organization'),
     )
+    accept_terms = models.BooleanField(default=False)  
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     is_verified = models.BooleanField(default=False)
 class RefugeeProfile(models.Model):
