@@ -245,7 +245,7 @@ from accounts.models import Notification
 class OrganizationServicesAPIView(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsRole]
-    allowed_roles = ["refugee "]
+    allowed_roles = ["refugee"]
 
     def get(self, request, pk):
         services = OrganizationService.objects.filter(
@@ -290,7 +290,7 @@ class CreateRequestAPIView(APIView):
 class MyRequestsAPIView(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsRole]
-    allowed_roles = ["refugee "]
+    allowed_roles = ["refugee"]
     def get(self, request):
 
         refugee = request.user.refugee_profile
@@ -323,7 +323,7 @@ class MyRequestsAPIView(APIView):
 class ServiceRequestDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsRole]
-    allowed_roles = ["refugee "]
+    allowed_roles = ["refugee"]
     def get(self, request, pk):
         service_request = ServiceRequest.objects.filter(id=pk).select_related(
             "organization", "service", "refugee"
@@ -338,7 +338,7 @@ class ServiceRequestDetailAPIView(APIView):
 class ScanQRAPIView(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsRole]
-    allowed_roles = ["refugee "]
+    allowed_roles = ["refugee"]
 
     def post(self, request):
         request_id = request.data.get("request_id")
@@ -382,7 +382,7 @@ class ScanQRAPIView(APIView):
 class RequestsListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsRole]
-    allowed_roles = ["refugee "]
+    allowed_roles = ["refugee"]
 
     def get_serializer_class(self, status):
         if status == "approved":
@@ -444,6 +444,8 @@ class RequestsListAPIView(APIView):
 
 #تفاصيل عرض الطلبات بواجهة المنظمة
 class OrganizationRequestsAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsRole]
+    allowed_roles = ["organization"]
 
     
     def get_serializer_class(self, status):
@@ -496,7 +498,8 @@ class OrganizationRequestsAPIView(APIView):
 
 #لعرض تفاصيل الطلب ضمن  حساب المنظمة
 class RequestDetailsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsRole]
+    allowed_roles = ["organization"]
 
     def get(self, request, pk):
         try:
@@ -516,7 +519,8 @@ User = get_user_model()
 
 #كرمال زر قبول الطلب
 class ApproveButtonAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsRole]
+    allowed_roles = ["organization"]
 
     def post(self, request, pk):
         try:
@@ -550,7 +554,8 @@ class ApproveButtonAPIView(APIView):
 
 #كرمال زر رفض الطلب            
 class RejectButtonAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsRole]
+    allowed_roles = ["organization"]
 
     def post(self, request, pk):
         try:
