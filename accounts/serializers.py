@@ -332,7 +332,7 @@ class VolunteerProfileViewSerializer(serializers.ModelSerializer):
 
 #شهد
 from rest_framework import serializers
-from .models import RefugeeProfile
+from .models import RefugeeFamilyMember
 from .models import Notification
 
 class RefugeeProfileSerializer(serializers.ModelSerializer):
@@ -370,7 +370,7 @@ class RefugeeProfileSerializer(serializers.ModelSerializer):
 
 
     def get_family_count(self, obj, category_name):
-        member = obj.family_members.filter(category__name__iexact=category_name).first()
+        member = obj.family_members.filter(family_category__name__iexact=category_name).first()
         return member.count if member else 0
 
     def get_children_count(self, obj):

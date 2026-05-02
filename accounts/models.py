@@ -75,7 +75,8 @@ class FamilyCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
     def str(self):
-        return self.name    
+        return self.name      
+          
 class RefugeeFamilyMember(models.Model):
     refugee = models.ForeignKey(
         'RefugeeProfile',

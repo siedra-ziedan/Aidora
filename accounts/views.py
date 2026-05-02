@@ -422,7 +422,7 @@ from .serializers import NotificationSerializer
 class RefugeeProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsRole]
-    allowed_roles = ["refugee "]
+    allowed_roles = ["refugee"]
     def get(self, request):
         # مؤقت للاختبار
         #refugee = RefugeeProfile.objects.first()
@@ -436,6 +436,8 @@ from django.contrib.auth import get_user_model
 
 class NotificationListAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    permission_classes = [IsRole]
+    allowed_roles = ["refugee"]
 
     def get(self, request):
 
