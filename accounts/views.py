@@ -381,8 +381,7 @@ volunteer_profile_view.allowed_roles = ["volunteer"]
 
 from rest_framework.views import APIView
 class UploadProfileImageAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsRole]
-    allowed_roles = ["volunteer"]
+    permission_classes = [IsAuthenticated]
 
     def patch(self, request):
         profile = request.user.volunteer_profile
