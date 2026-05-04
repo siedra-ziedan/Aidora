@@ -30,7 +30,7 @@ urlpatterns = [
     path(
         'volunteer/profile/',
         VolunteerProfileViewSet.as_view({
-            'patch': 'partial_update'
+            'patch': 'update_profile'
         })
     ),
 

@@ -135,7 +135,7 @@ class VolunteerProfileViewSet(ViewSet):
 
 
     # ✅ PATCH (الواجهة الأولى)
-    def partial_update(self, request):
+    def update_profile(self, request):
         profile = self.get_profile(request)
 
         serializer = VolunteerProfileSerializer(
