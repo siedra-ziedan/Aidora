@@ -380,21 +380,35 @@ volunteer_profile_view.allowed_roles = ["volunteer"]
 
 
 from rest_framework.views import APIView
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
 class UploadProfileImageAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request):
-        profile = request.user.volunteer_profile
-
+        user = request.user
         image = request.FILES.get('profile_image')
 
         if not image:
-            return Response(
-                {"error": "No image provided"},
-                status=400
-            )
+            return Response({"error": "No image provided"}, status=400)
 
-        # 🔥 حذف الصورة القديمة (إذا موجودة)
+        # 🔹 تحديد البروفايل حسب الدور + حماية
+        try:
+            if user.role == "volunteer":
+                profile = user.volunteer_profile
+
+            elif user.role == "refugee":
+                profile = user.refugee_profile
+
+            else:
+                return Response({"error": "Invalid role"}, status=400)
+
+        except:
+            return Response({"error": "Profile not found"}, status=404)
+
+        # 🔥 حذف الصورة القديمة إذا موجودة
         if profile.profile_image:
             profile.profile_image.delete(save=False)
 
@@ -406,8 +420,6 @@ class UploadProfileImageAPIView(APIView):
             "message": "Profile image updated successfully",
             "profile_image": request.build_absolute_uri(profile.profile_image.url)
         })
-
-
 #شهد
 from django.shortcuts import render
 from rest_framework.views import APIView
