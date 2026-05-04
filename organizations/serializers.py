@@ -365,7 +365,7 @@ class OrganizationCardSerializer(serializers.ModelSerializer):
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = ["name", "description" ,"icon"]  # هنا الاسم والوصف فقط
+        fields = ["name", "description" ,"icon","id"]  # هنا الاسم والوصف فقط
 
 
 class TargetGroupSerializer(serializers.ModelSerializer):
@@ -394,11 +394,9 @@ class OrganizationDetailSerializer(serializers.ModelSerializer):
             "services",
             "target_groups",
         ]
-
     def get_services(self, obj):
-        org_services = OrganizationService.objects.filter(organization=obj)
-        return ServiceSerializer([os.service for os in org_services], many=True).data
-
+      org_services = OrganizationService.objects.filter(organization=obj)
+      return ServiceSerializer([os.service for os in org_services], many=True).data
     def get_target_groups(self, obj):
         org_targets = OrganizationTargetGroup.objects.filter(organization=obj)
         return [ot.target_group.name for ot in org_targets]
