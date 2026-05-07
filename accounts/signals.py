@@ -19,9 +19,10 @@ def create_user_profile(sender, instance, created, **kwargs):
         elif instance.role == 'volunteer':
             VolunteerProfile.objects.create(user=instance)
 
-@receiver(post_save, sender=VolunteerApplication)
-def handle_application_approval(sender, instance, created, **kwargs):
-    if created:
+@receiver(pre_save, sender=VolunteerApplication)
+def handle_application_approval(sender, instance, **kwargs):
+    # التحقق من وجود instance قديمة في الـ database
+    if not instance.pk:
         return
 
     try:
@@ -29,6 +30,7 @@ def handle_application_approval(sender, instance, created, **kwargs):
     except VolunteerApplication.DoesNotExist:
         return
 
+    # التحقق من التغيير من non-approved إلى approved
     if old_instance.status != "approved" and instance.status == "approved":
         profile = getattr(instance.user, "volunteer_profile", None)
 

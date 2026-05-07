@@ -9,7 +9,7 @@ def get_or_create_pin(volunteer_profile):
     if volunteer_profile.verification_pin and volunteer_profile.pin_expires_at > now:
         return volunteer_profile.verification_pin
     else:
-        pin = f"{randint(100000, 999999)}"
+        pin = f"{randint(1000, 9999)}"
         volunteer_profile.verification_pin = pin
         volunteer_profile.pin_expires_at = now + timezone.timedelta(minutes=10)
         volunteer_profile.save()
