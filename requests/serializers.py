@@ -11,38 +11,39 @@ from django.utils.timezone import now
 from datetime import timedelta
 from .models import Task
 
+from rest_framework import serializers
+from django.utils.timesince import timesince
+from django.utils.timezone import now
+
+
 class TaskHomeSerializer(serializers.ModelSerializer):
     location = serializers.CharField(source='service_request_id.location')
     created_display = serializers.SerializerMethodField()
-    icon = serializers.ImageField(source='service_request_id.service.icon')
+
+    # ✅ صار icon نص عادي
+    icon = serializers.CharField(source='service_request_id.service.icon')
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'location', 'created_display', 'icon']
+        fields = [
+            'id',
+            'title',
+            'location',
+            'created_display',
+            'icon'
+        ]
 
     def get_created_display(self, obj):
         diff = now() - obj.created_at
 
         if diff < timedelta(hours=24):
             return obj.created_at.strftime("%I:%M %p")
+
         elif diff < timedelta(days=2):
             return "Yesterday"
+
         else:
             return f"{diff.days} days ago"
-
-    # 🔥 تحويل الرابط لـ absolute URL
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        request = self.context.get('request')
-
-        if data.get('icon') and request:
-            data['icon'] = request.build_absolute_uri(data['icon'])
-
-        return data
-from rest_framework import serializers
-from django.utils.timesince import timesince
-from django.utils.timezone import now
-
 class TaskListSerializer(serializers.ModelSerializer):
     location = serializers.CharField(source='service_request_id.location')
     created_at_display = serializers.SerializerMethodField()
