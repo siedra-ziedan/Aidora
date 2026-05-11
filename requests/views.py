@@ -89,8 +89,12 @@ class VolunteerHomeAPIView(APIView):
 
         # 🔹 معلومات المتطوع
         full_name = volunteer.full_name
-        profile_image = volunteer.profile_image
 
+        profile_image = None
+        if volunteer.profile_image:
+          profile_image = request.build_absolute_uri(
+        volunteer.profile_image.url
+              )
         # 🔹 كل المهام تبعه
         tasks = Task.objects.filter(volunteer_id=volunteer)
 
