@@ -194,9 +194,9 @@ class TaskUpdateAPIView(APIView):
             if not reason:
                 return Response({"error": "Rejection reason is required for failed status"}, status=400)
             task.rejection_reason = reason
-        # إذا كان completed بنضع reason ل None
+        # إذا كان completed بنضع reason ل string فاضي
         elif new_status == 'completed':
-            task.rejection_reason = None
+            task.rejection_reason = ""
 
         task.status = new_status
         task.save()  # 🔥 updated_at بيتحدث هون تلقائي
