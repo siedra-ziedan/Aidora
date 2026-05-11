@@ -173,36 +173,37 @@ class TaskUpdateAPIView(APIView):
             "request_display": f"Request#{str(task.service_request_id.id).zfill(4)}"
         })
     def patch(self, request, id):
-      volunteer = request.user.volunteer_profile
+        volunteer = request.user.volunteer_profile
 
-      try:
-        task = Task.objects.get(id=id, volunteer_id=volunteer)
-      except Task.DoesNotExist:
-        return Response({"error": "Task not found"}, status=404)
+        try:
+            task = Task.objects.get(id=id, volunteer_id=volunteer)
+        except Task.DoesNotExist:
+            return Response({"error": "Task not found"}, status=404)
 
-      if task.status != 'pending':
-        return Response({"error": "Only pending tasks can be updated"}, status=400)
+        # يجب أن تكون الحالة pending فقط
+        if task.status != 'pending':
+            return Response({"error": "Only pending tasks can be updated"}, status=400)
 
-      new_status = request.data.get('status')
-      reason = request.data.get('rejection_reason')
+        new_status = request.data.get('status')
+        reason = request.data.get('rejection_reason')
 
-      if new_status not in ['completed', 'failed']:
-        return Response({"error": "Invalid status"}, status=400)
+        
 
-      if new_status == 'failed':
-        if not reason:
-            return Response({"error": "Reason required"}, status=400)
-        task.rejection_reason = reason
+        # إذا كان failed بتطلب السبب obligatory
+        if new_status == 'failed':
+            if not reason:
+                return Response({"error": "Rejection reason is required for failed status"}, status=400)
+            task.rejection_reason = reason
+        # إذا كان completed بنضع reason ل None
+        elif new_status == 'completed':
+            task.rejection_reason = None
 
-      elif new_status == 'completed':
-        task.rejection_reason = None
+        task.status = new_status
+        task.save()  # 🔥 updated_at بيتحدث هون تلقائي
 
-      task.status = new_status
-      task.save()  # 🔥 updated_at بيتحدث هون تلقائي
-
-      from .serializers import TaskSerializer
-      serializer = TaskSerializer(task, context={'request': request})
-      return Response(serializer.data)
+        from .serializers import TaskUpdateSerializer
+        serializer = TaskUpdateSerializer(task, context={'request': request})
+        return Response(serializer.data)
     
     
     
