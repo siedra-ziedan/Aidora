@@ -420,6 +420,31 @@ class UploadProfileImageAPIView(APIView):
             "message": "Profile image updated successfully",
             "profile_image": request.build_absolute_uri(profile.profile_image.url)
         })
+
+    def delete(self, request):
+        user = request.user
+
+        # 🔹 تحديد البروفايل حسب الدور + حماية
+        try:
+            if user.role == "volunteer":
+                profile = user.volunteer_profile
+
+            elif user.role == "refugee":
+                profile = user.refugee_profile
+
+            else:
+                return Response({"error": "Invalid role"}, status=400)
+
+        except:
+            return Response({"error": "Profile not found"}, status=404)
+
+        # 🔥 حذف الصورة إذا موجودة
+        if profile.profile_image:
+            profile.profile_image.delete(save=False)
+            profile.save()
+            return Response({"message": "Profile image deleted successfully"}, status=200)
+        
+        return Response({"error": "No image to delete"}, status=400)
 #شهد
 from django.shortcuts import render
 from rest_framework.views import APIView
