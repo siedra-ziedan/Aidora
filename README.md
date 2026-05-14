@@ -26,6 +26,15 @@ This project was developed collaboratively, with responsibilities divided to ens
     - Implemented CRUD operations for volunteers and organizations
     - Designed user structure and initial UI interfaces
     - **Authentication Core:** Configured JWT (Access & Refresh tokens) with custom login logic
+    - Implemented a complete OTP email verification system for user registration using Django REST Framework:
+        - Secure OTP generation with expiration time
+        - Email verification flow for Refugee and Volunteer accounts
+        - Async OTP email sending using Threads + transaction.on_commit to avoid request timeout issues
+        - Verify OTP API
+        - Resend OTP API
+        - Account activation only after successful verification
+        - Clean role-based registration flow with automatic profile creation via Django signals
+        - Focused on improving security, reliability, and real-world authentication flow architecture
     - **Security & Automation:** Engineered PIN system with automated email notifications on volunteer approval
     - **State Management:** Developed `/api/auth/me/` endpoint for intelligent frontend routing
     - **Database Architecture:** Designed and optimized schema for scalability
