@@ -22,6 +22,7 @@ from .models import VolunteerApplication
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.viewsets import ViewSet
 from .permissions import IsRole
+from .serializers import ResendOTPSerializer
 User = get_user_model()
 
 @api_view(['POST'])
@@ -68,37 +69,214 @@ def logout_view(request):
 
     except Exception:
         return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+
+from rest_framework.decorators import (
+    api_view,
+    permission_classes
+)
+
+from rest_framework.response import Response
+
+from rest_framework import status
+
+from django.utils import timezone
+
+from .serializers import (
+    RegisterSerializer,
+    VerifyOTPSerializer
+)
+
+from .models import User
+
+
 @api_view(['POST'])
 def register_refugee(request):
+
     serializer = RegisterSerializer(
         data=request.data,
         context={"role": "refugee"}
     )
 
     if serializer.is_valid():
-        serializer.save()
+
+        user = serializer.save()
+
         return Response(
-            {"message": "Refugee account created"},
-            status=201
+            {
+                "message": "OTP sent successfully",
+                "email": user.email
+            },
+            status=status.HTTP_201_CREATED
         )
 
-    return Response(serializer.errors, status=400)
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
 
 @api_view(['POST'])
 def register_volunteer(request):
+
     serializer = RegisterSerializer(
         data=request.data,
         context={"role": "volunteer"}
     )
 
     if serializer.is_valid():
-        serializer.save()
+
+        user = serializer.save()
+
         return Response(
-            {"message": "Volunteer account created"},
-            status=201
+            {
+                "message": "OTP sent successfully",
+                "email": user.email
+            },
+            status=status.HTTP_201_CREATED
         )
 
-    return Response(serializer.errors, status=400)
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
+from threading import Thread
+from django.utils import timezone
+from datetime import timedelta
+from django.core.mail import send_mail
+from .utils import generate_otp
+
+@api_view(['POST'])
+def resend_otp(request):
+
+    serializer = ResendOTPSerializer(data=request.data)
+
+    if serializer.is_valid():
+
+        email = serializer.validated_data['email']
+
+        try:
+            user = User.objects.get(email=email)
+
+        except User.DoesNotExist:
+
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # ✅ إذا الحساب مفعل بالفعل
+        if user.is_verified:
+
+            return Response(
+                {"error": "Account already verified"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ✅ توليد OTP جديد
+        otp = generate_otp()
+
+        user.otp_code = otp
+
+        user.otp_expires_at = (
+            timezone.now() + timedelta(minutes=12)
+        )
+
+        user.save()
+
+        # ✅ إرسال الإيميل بالخلفية
+        def _send_otp_email(otp_code, user_email):
+
+            try:
+
+                send_mail(
+                    subject='OTP Verification',
+                    message=f'Your new OTP code is: {otp_code}',
+                    from_email=f'Aidora <{settings.EMAIL_HOST_USER}>',
+                    recipient_list=[user_email],
+                    fail_silently=False,
+                )
+
+            except Exception as e:
+
+                print(f"Error sending OTP email: {e}")
+
+        Thread(
+            target=_send_otp_email,
+            args=(otp, user.email)
+        ).start()
+
+        return Response(
+            {
+                "message": "New OTP sent successfully"
+            },
+            status=status.HTTP_200_OK
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+@api_view(['POST'])
+def verify_otp(request):
+
+    serializer = VerifyOTPSerializer(
+        data=request.data
+    )
+
+    if serializer.is_valid():
+
+        email = serializer.validated_data['email']
+
+        otp = serializer.validated_data['otp']
+
+        try:
+            user = User.objects.get(email=email)
+
+        except User.DoesNotExist:
+
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # ✅ تحقق من OTP
+        if user.otp_code != otp:
+
+            return Response(
+                {"error": "Invalid OTP"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ✅ تحقق من انتهاء الوقت
+        if timezone.now() > user.otp_expires_at:
+
+            return Response(
+                {"error": "OTP expired"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ✅ تفعيل الحساب
+        user.is_verified = True
+
+        user.otp_code = None
+
+        user.otp_expires_at = None
+
+        user.save()
+
+        return Response(
+            {
+                "message": "Account verified successfully"
+            },
+            status=status.HTTP_200_OK
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
 
 from rest_framework.views import APIView
 

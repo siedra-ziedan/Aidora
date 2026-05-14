@@ -14,6 +14,15 @@ class User(AbstractUser):
     )
     accept_terms = models.BooleanField(default=False)  
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    otp_code = models.CharField(
+    max_length=6,
+    null=True,
+    blank=True)
+
+    otp_expires_at = models.DateTimeField(
+    null=True,
+    blank=True)
+
     is_verified = models.BooleanField(default=False)
 class RefugeeProfile(models.Model):
     user = models.OneToOneField(

@@ -3,6 +3,15 @@ from django.utils import timezone
 from random import randint
 from django.core.mail import send_mail
 from django.conf import settings
+import random
+
+
+
+
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
 
 def get_or_create_pin(volunteer_profile):
     now = timezone.now()
@@ -21,8 +30,8 @@ def send_verification_pin(volunteer_profile):
     """
     pin = get_or_create_pin(volunteer_profile)
     send_mail(
-        subject="Aidora Verification PIN",
-        message=f"Your verification PIN is: {pin}",
+        subject="Approval Verification PIN",
+        message=f"Your Approval PIN is: {pin}",
         from_email=f"Aidora <{settings.EMAIL_HOST_USER}>",
         recipient_list=[volunteer_profile.user.email],
     )

@@ -9,29 +9,55 @@ from django.contrib.auth import get_user_model
 from .models import RefugeeProfile, VolunteerProfile
 
 User = get_user_model()
+from rest_framework import serializers
+from django.utils import timezone
+from datetime import timedelta
+from django.core.mail import send_mail
+
+from .models import User
+from .utils import generate_otp
+from django.conf import settings
+from django.db import transaction
+from threading import Thread
+
+
 class RegisterSerializer(serializers.Serializer):
+
     full_name = serializers.CharField()
     phone_number = serializers.CharField()
+
     email = serializers.EmailField()
+
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
-    accept_terms = serializers.BooleanField()  
+
+    accept_terms = serializers.BooleanField()
 
     def validate_email(self, value):
+
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Account already exists with this email")
+            raise serializers.ValidationError(
+                "Account already exists with this email"
+            )
+
         return value
 
     def validate(self, data):
+
         if data["password"] != data["confirm_password"]:
-            raise serializers.ValidationError("Passwords do not match")
+            raise serializers.ValidationError(
+                "Passwords do not match"
+            )
 
         if not data.get("accept_terms"):
-            raise serializers.ValidationError("You must accept the terms and conditions")
+            raise serializers.ValidationError(
+                "You must accept the terms and conditions"
+            )
 
         return data
 
     def create(self, validated_data):
+
         role = self.context.get("role")
 
         validated_data.pop("confirm_password")
@@ -41,25 +67,75 @@ class RegisterSerializer(serializers.Serializer):
             email=validated_data["email"],
             password=validated_data["password"],
             role=role,
-            accept_terms=validated_data["accept_terms"]  # 👈 مهم
+            accept_terms=validated_data["accept_terms"]
         )
 
+        # ✅ توليد OTP
+        otp = generate_otp()
+
+        user.otp_code = otp
+
+        user.otp_expires_at = (
+            timezone.now() + timedelta(minutes=12)
+        )
+
+        user.is_verified = False
+
+        user.save()
+
+        # إرسال OTP بعد إتمام عملية الحفظ في قاعدة البيانات لتجنب مشاكل التزام البيانات والـ timeout
+        def _send_otp_email(otp_code, user_email):
+            try:
+                send_mail(
+                    subject='OTP Verification',
+                    message=f'Your OTP code is: {otp_code}',
+                    from_email=f'Aidora <{settings.EMAIL_HOST_USER}>',
+                    recipient_list=[user_email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                # لا نوقف التنفيذ لو فشل الإرسال — فقط نسجل الخطأ
+                print(f"Error sending OTP email: {e}")
+
+        transaction.on_commit(lambda: Thread(target=_send_otp_email, args=(otp, user.email)).start())
+
+        # ✅ تعبئة البروفايل
         if role == "refugee":
+
             profile = user.refugee_profile
+
             profile.full_name = validated_data["full_name"]
+
             profile.phone_number = validated_data["phone_number"]
+
             profile.profile_completed = False
+
             profile.save()
 
         elif role == "volunteer":
+
             profile = user.volunteer_profile
+
             profile.full_name = validated_data["full_name"]
+
             profile.phone_number = validated_data["phone_number"]
+
             profile.profile_completed = False
+
             profile.save()
 
         return user
 
+
+class VerifyOTPSerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
+    otp = serializers.CharField()
+
+class ResendOTPSerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
+    
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
