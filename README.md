@@ -35,10 +35,17 @@ This project was developed collaboratively, with responsibilities divided to ens
         - Account activation only after successful verification
         - Clean role-based registration flow with automatic profile creation via Django signals
         - Focused on improving security, reliability, and real-world authentication flow architecture
+         - Implemented a secure password recovery flow using Django’s built-in token generator:
+        - Forgot password API
+        - Email reset link delivery
+        - Secure token validation and expiration handling
+        - Password confirmation and reset validation
+        - Deep link-ready reset flow for mobile support
     - **Security & Automation:** Engineered PIN system with automated email notifications on volunteer approval
     - **State Management:** Developed `/api/auth/me/` endpoint for intelligent frontend routing
     - **Database Architecture:** Designed and optimized schema for scalability
     - Developed the real-time notifications infrastructure for Organizations, enabling automated alerts for volunteer approvals and task status tracking.
+   
 *   **Shahd-Ibraheem :**
     - Responsible for **Refugees** module and service request 
     - Implemented all CRUD operations for refugee profiles
