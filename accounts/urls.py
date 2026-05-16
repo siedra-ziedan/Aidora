@@ -1,5 +1,7 @@
 from django.urls import path
-from .views import login_api ,logout_view, register_refugee , register_volunteer,resend_otp ,verify_otp,submit_volunteer_application,auth_me
+from .views import ( login_api ,logout_view, register_refugee , register_volunteer,resend_otp,forgot_password 
+                    ,verify_otp,reset_password,
+                    submit_volunteer_application,auth_me)
 from .views import CompleteRefugeeProfileView 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -57,7 +59,8 @@ urlpatterns = [
     path("volunteers/<int:volunteer_id>/qr/", volunteer_qr),
     path("volunteer/profile/view", volunteer_profile_view), #Get
     path('profile/upload-image/',UploadProfileImageAPIView.as_view()),
-
+    path('forgot-password/', forgot_password),
+    path('reset-password/', reset_password),
 #شهد
     path('profile/refugee/', RefugeeProfileAPIView.as_view(), name='refugee-profile'),
     path('notifications/', NotificationListAPIView.as_view()),

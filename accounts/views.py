@@ -623,6 +623,151 @@ class UploadProfileImageAPIView(APIView):
             return Response({"message": "Profile image deleted successfully"}, status=200)
         
         return Response({"error": "No image to delete"}, status=400)
+    
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from .serializers import ForgotPasswordSerializer
+@api_view(['POST'])
+def forgot_password(request):
+
+    serializer = ForgotPasswordSerializer(
+        data=request.data
+    )
+
+    if serializer.is_valid():
+
+        email = serializer.validated_data['email']
+
+        try:
+            user = User.objects.get(email=email)
+
+        except User.DoesNotExist:
+
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # ✅ توليد uid
+        uid = urlsafe_base64_encode(
+            force_bytes(user.id)
+        )
+
+        # ✅ توليد token
+        token = PasswordResetTokenGenerator().make_token(user)
+
+        # ✅ رابط إعادة تعيين كلمة المرور
+        reset_link = (
+            f"aidora://reset-password/"
+            f"{uid}/{token}/"
+        )
+
+        # ✅ إرسال الإيميل بالخلفية
+        def _send_email():
+
+            try:
+
+                send_mail(
+                    subject='Reset Your Password',
+                    message=(
+                         f'Hello,\n\n'
+                         f'Click the link below to reset your password:\n\n'
+                         f'{reset_link}\n\n'
+                         f'If you did not request this, ignore this email.'
+                             ),
+                    from_email=f'Aidora <{settings.EMAIL_HOST_USER}>',
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+
+            except Exception as e:
+
+                print("Email Error:", e)
+
+        Thread(target=_send_email).start()
+
+        return Response(
+            {
+                "message": "Reset password link sent successfully"
+            },
+            status=status.HTTP_200_OK
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
+from django.utils.http import urlsafe_base64_decode
+
+from django.contrib.auth.tokens import (
+    PasswordResetTokenGenerator
+)
+
+from .serializers import ResetPasswordSerializer
+
+
+@api_view(['Patch'])
+def reset_password(request):
+
+    serializer = ResetPasswordSerializer(
+        data=request.data
+    )
+
+    if serializer.is_valid():
+
+        uid = serializer.validated_data['uid']
+
+        token = serializer.validated_data['token']
+
+        new_password = serializer.validated_data[
+            'new_password'
+        ]
+
+        try:
+
+            user_id = urlsafe_base64_decode(
+                uid
+            ).decode()
+
+            user = User.objects.get(id=user_id)
+
+        except Exception:
+
+            return Response(
+                {"error": "Invalid uid"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ✅ تحقق من صلاحية التوكن
+        if not PasswordResetTokenGenerator().check_token(
+            user,
+            token
+        ):
+
+            return Response(
+                {"error": "Invalid or expired token"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ✅ تغيير كلمة المرور
+        user.set_password(new_password)
+
+        user.save()
+
+        return Response(
+            {
+                "message": "Password reset successfully"
+            },
+            status=status.HTTP_200_OK
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
 #شهد
 from django.shortcuts import render
 from rest_framework.views import APIView

@@ -406,6 +406,38 @@ class VolunteerProfileViewSerializer(serializers.ModelSerializer):
         return obj.created_at.strftime("%b %Y")
 
 
+class ForgotPasswordSerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
+
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+
+    uid = serializers.CharField()
+
+    token = serializers.CharField()
+
+    new_password = serializers.CharField(
+        write_only=True
+    )
+
+    confirm_password = serializers.CharField(
+        write_only=True
+    )
+
+    def validate(self, data):
+
+        if data['new_password'] != data['confirm_password']:
+
+            raise serializers.ValidationError(
+                "Passwords do not match"
+            )
+
+        return data
+
+
+
 #شهد
 from rest_framework import serializers
 from .models import RefugeeFamilyMember
