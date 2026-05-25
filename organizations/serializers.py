@@ -165,7 +165,7 @@ class OrganizationRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceRequest
         fields = [
-            'id'
+            'id',
             'refugee_id',
             'location',
             'service_type',
@@ -192,7 +192,7 @@ class OrganizationTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = [
-            'id'
+            'id',
             'title',
             'volunteer_id',
             'full_name',
