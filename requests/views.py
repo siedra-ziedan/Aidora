@@ -340,50 +340,68 @@ class ServiceRequestDetailAPIView(APIView):
         serializer = ServiceRequestDetailSerializer(service_request,context={"request": request})
         return Response(serializer.data)
 
-class ScanQRAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsRole]
-    allowed_roles = ["refugee"]
+from django.utils.timezone import now
 
-    def post(self, request):
-        request_id = request.data.get("request_id")
+class ScanQRAPIView(APIView):
+    # permission_classes = [IsAuthenticated, IsRole]
+    # allowed_roles = ["refugee"]
+
+    def post(self, request, pk):
+
         qr_code = request.data.get("qr_code")
 
-        #  تحقق من وجود الطلب
-        service_request = ServiceRequest.objects.filter(id=request_id).first()
+        # 🔍 تحقق من وجود الطلب
+        service_request = ServiceRequest.objects.filter(id=pk).first()
+
         if not service_request:
-            return Response({"error": "Request not found"}, status=404)
+            return Response(
+                {"error": "Request not found"},
+                status=404
+            )
 
-        #  تحقق من الحالة
-        if service_request.status != "approved":
-            return Response({"error": "Request is not approved"}, status=400)
-
-        #  منع التكرار
+        # 🔍 تحقق من الحالة
         if service_request.status == "completed":
-            return Response({"error": "Request already completed"}, status=400)
+            return Response(
+                {"error": "Request already completed"},
+                status=400
+            )
 
-        #  تحقق من QR
-        volunteer = VolunteerProfile.objects.filter(qr_code=qr_code).first()
+        if service_request.status != "approved":
+            return Response(
+                {"error": "Request is not approved"},
+                status=400
+            )
+
+        # 🔍 تحقق من QR
+        volunteer = VolunteerProfile.objects.filter(
+            qr_code=qr_code
+        ).first()
+
         if not volunteer:
-            return Response({"error": "Invalid QR code"}, status=400)
+            return Response(
+                {"error": "Invalid QR code"},
+                status=400
+            )
 
-        #  تحقق من نفس المنظمة 
+        # 🔐 تحقق من المنظمة
         if volunteer.organization != service_request.organization:
-            return Response({"error": "Unauthorized volunteer"}, status=403)
+            return Response(
+                {"error": "Unauthorized volunteer"},
+                status=403
+            )
 
-        #  تحديث الطلب
+        # 🔥 تحديث الطلب
         service_request.status = "completed"
         service_request.received_at = now()
         service_request.save()
 
-        #  Response النهائي 
         return Response({
             "message": "Request completed successfully",
-            "ref": f"Ref: {service_request.refugee.id}",
+            "request_id": f"R-{service_request.id}",
             "status": service_request.status,
             "received_at": service_request.received_at
         }, status=200)
-  
+
 class RequestsListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsRole]

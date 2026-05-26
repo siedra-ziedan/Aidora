@@ -268,8 +268,7 @@ class ServiceRequestDetailSerializer(serializers.ModelSerializer):
 
 #مسح الرمز 
 class ConfirmDeliverySerializer(serializers.Serializer):
-    refugee_id = serializers.IntegerField(read_only=True)
-      
+    qr_code = serializers.CharField()
 
 #لعرض واجهة الطلبات والفلترة حسب الحالة
 

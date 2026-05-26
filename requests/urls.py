@@ -23,7 +23,7 @@ path('<int:pk>/services/', OrganizationServicesAPIView.as_view()),
 path('<int:pk>/createrequest/', CreateRequestAPIView.as_view()),
 path("my-requests/", MyRequestsAPIView.as_view()),
 path("<int:pk>/details/", ServiceRequestDetailAPIView.as_view()),
-path('scan-qr/', ScanQRAPIView.as_view()),
+path('<int:pk>/scan-qr/', ScanQRAPIView.as_view()),
 path('list/', RequestsListAPIView.as_view(), name="requests-list"),
     #api/requests/list/?status=Approved(حالة الطلب يلي بدي فلتر عليها)/
     
