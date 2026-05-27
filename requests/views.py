@@ -552,7 +552,7 @@ class ApproveButtonAPIView(APIView):
             return Response({"error": "Request not found"}, status=404)
 
         #organization = Organization.objects.first()
-        if req.organization != request.user.organization_profile:
+        if req.organization != request.user.organization:
             return Response({"error": "Not allowed"}, status=403)
 
         
