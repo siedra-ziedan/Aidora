@@ -384,39 +384,18 @@ class PendingSerializer(serializers.ModelSerializer):
             return f"Submitted {diff.days}d ago"
 
 
-#واجهة الطلبات ضمن تطبيق المنظمة
-class OrgPendingSerializer(serializers.ModelSerializer):
+class OrganizationRequestSerializer(serializers.ModelSerializer):
+
     refugee_name = serializers.CharField(source="refugee.full_name")
     request_id = serializers.SerializerMethodField()
     service_name = serializers.CharField(source="service.name")
+    icon= serializers.CharField(source="service.icon")
     request_date = serializers.SerializerMethodField()
+   
 
     class Meta:
         model = ServiceRequest
-        fields = [
-            "id",
-            "status",
-            "refugee_name",
-            "request_id",
-            "service_name",
-            "location",
-            "request_date"
-        ]
 
-    def get_request_id(self, obj):
-        return f"R-{obj.id}"
-
-    def get_request_date(self, obj):
-        return obj.created_at.strftime("%d/%m/%Y")
-
-class OrgRejectedSerializer(serializers.ModelSerializer):
-    refugee_name = serializers.CharField(source="refugee.full_name")
-    request_id = serializers.SerializerMethodField()
-    service_name = serializers.CharField(source="service.name")
-    request_date = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ServiceRequest
         fields = [
             "id",
             "status",
@@ -425,31 +404,7 @@ class OrgRejectedSerializer(serializers.ModelSerializer):
             "service_name",
             "location",
             "request_date",
-            "rejection_reason"
-        ]
-
-    def get_request_id(self, obj):
-        return f"R-{obj.id}"
-
-    def get_request_date(self, obj):
-        return obj.created_at.strftime("%d/%m/%Y")      
-
-class OrgApprovedSerializer(serializers.ModelSerializer):
-    refugee_name = serializers.CharField(source="refugee.full_name")
-    request_id = serializers.SerializerMethodField()
-    service_name = serializers.CharField(source="service.name")
-    request_date = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ServiceRequest
-        fields = [
-            "id",
-            "status",
-            "refugee_name",
-            "request_id",
-            "service_name",
-            "location",
-            "request_date"
+           "icon",
         ]
 
     def get_request_id(self, obj):
@@ -458,30 +413,7 @@ class OrgApprovedSerializer(serializers.ModelSerializer):
     def get_request_date(self, obj):
         return obj.created_at.strftime("%d/%m/%Y")
 
-class OrgCompletedSerializer(serializers.ModelSerializer):
-    refugee_name = serializers.CharField(source="refugee.full_name")
-    request_id = serializers.SerializerMethodField()
-    service_name = serializers.CharField(source="service.name")
-    received_date = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ServiceRequest
-        fields = [
-            "id",
-            "status",
-            "refugee_name",
-            "request_id",
-            "service_name",
-            "location",
-            "received_date"
-        ]
-
-    def get_request_id(self, obj):
-        return f"R-{obj.id}"
-
-    def get_received_date(self, obj):
-        return obj.received_at.strftime("%d/%m/%Y") if obj.received_at else None
-    
+       
 #لعرض تفاصيل الطلب ضمن  حساب المنظمة
 class RequestDetailsSerializer(serializers.ModelSerializer):
     request_id = serializers.SerializerMethodField()

@@ -235,12 +235,7 @@ from .serializers import (
     RejectedSerializer,
     PendingSerializer
 )
-from .serializers import(
-    OrgCompletedSerializer,
-    OrgApprovedSerializer,
-    OrgRejectedSerializer,
-    OrgPendingSerializer,
-)
+from .serializers import OrganizationRequestSerializer
 from .serializers import RequestDetailsSerializer
 from .serializers import ApproveButtonSerializer
 from .serializers import RejectButtonSerializer
@@ -470,61 +465,33 @@ class OrganizationRequestsAPIView(APIView):
     permission_classes = [IsAuthenticated, IsRole]
     allowed_roles = ["organization"]
 
-    
-    def get_serializer_class(self, status):
-        if status == "pending":
-            return OrgPendingSerializer
-        elif status == "approved":
-            return OrgApprovedSerializer
-        elif status == "rejected":
-            return OrgRejectedSerializer
-        elif status == "completed":
-            return OrgCompletedSerializer
-        return None
-
     def get(self, request):
-        # مؤقت للاختبار
-        #organization = ServiceRequest.objects.first().organization
+
         organization = request.user.organization
 
         status_filter = request.query_params.get("status")
 
         requests = ServiceRequest.objects.filter(
             organization=organization
-        ).select_related("refugee", "service")
-
+        ).select_related(
+            "refugee",
+            "service"
+        )
 
         if status_filter:
             requests = requests.filter(status=status_filter)
 
-        serializer_class = self.get_serializer_class(status_filter)
+        serializer = OrganizationRequestSerializer(
+            requests,
+            many=True
+        )
 
-        if serializer_class:
-            data = serializer_class(requests, many=True).data
-        else:
-            data = {
-                "pending": OrgPendingSerializer(
-                    requests.filter(status="pending"), many=True
-                ).data,
-                "approved": OrgApprovedSerializer(
-                    requests.filter(status="approved"), many=True
-                ).data,
-                "rejected": OrgRejectedSerializer(
-                    requests.filter(status="rejected"), many=True
-                ).data,
-                "completed": OrgCompletedSerializer(
-                    requests.filter(status="completed"), many=True
-                ).data,
-            }
-
-        return Response(data)       
-
-#لعرض تفاصيل الطلب ضمن  حساب المنظمة
+        return Response(serializer.data)
 class RequestDetailsAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsRole]
-    allowed_roles = ["organization"]
+      permission_classes = [IsAuthenticated, IsRole]
+      allowed_roles = ["organization"]
 
-    def get(self, request, pk):
+      def get(self, request, pk):
         try:
             req = ServiceRequest.objects.get(id=pk)
         except ServiceRequest.DoesNotExist:
