@@ -255,8 +255,8 @@ class TaskReportSerializer(serializers.ModelSerializer):
 
 class AssignTaskGetSerializer(serializers.ModelSerializer):
     service_name = serializers.CharField(source='service.name')
-    service_icon = serializers.SerializerMethodField()
-    sector = serializers.CharField(source='refugee.sector')
+    service_icon = serializers.CharField(source='service.icon')
+    sector = serializers.CharField(source='refugee.sector_name')
     volunteers = serializers.SerializerMethodField()
 
     class Meta:
@@ -269,11 +269,6 @@ class AssignTaskGetSerializer(serializers.ModelSerializer):
             'volunteers'
         ]
 
-    def get_service_icon(self, obj):
-        request = self.context.get('request')
-        if obj.service.icon:
-            return request.build_absolute_uri(obj.service.icon.url)
-        return None
 
     def get_volunteers(self, obj):
         request = self.context.get('request')
