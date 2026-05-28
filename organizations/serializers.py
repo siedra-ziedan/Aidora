@@ -307,33 +307,47 @@ class AssignTaskResponseSerializer(serializers.ModelSerializer):
     
 
 class TaskSerializer(serializers.ModelSerializer):
-    volunteer_full_name = serializers.CharField(source='volunteer_id.full_name')
-    volunteer_profile_image = serializers.CharField(source='volunteer_id.profile_image')
-    location = serializers.CharField(source='service_request_id.location')
-    service_request_status = serializers.CharField(source='service_request_id.status')
-    rejection_reason = serializers.CharField(source='rejection_reason', allow_null=True, required=False)
+
+    volunteer_full_name = serializers.CharField(
+        source='volunteer_id.full_name'
+    )
+    location = serializers.CharField(
+        source='service_request_id.location'
+    )
+
+    service_request_status = serializers.CharField(
+        source='service_request_id.status'
+    )
+
+    date = serializers.SerializerMethodField()
 
     class Meta:
+
         model = Task
+
         fields = [
             'id',
             'title',
             'volunteer_full_name',
-            'volunteer_profile_image',
             'location',
             'service_request_status',
+            'date',
             'rejection_reason',
         ]
-    
+
+    def get_date(self, obj):
+
+        return obj.updated_at.strftime("%b %d, %Y")
+
     def to_representation(self, instance):
+
         data = super().to_representation(instance)
-        
-        # إذا rejection_reason = null، إمسح الحقل
+
+        # 🔹 إذا rejection_reason = null إحذف الحقل
         if data.get('rejection_reason') is None:
             del data['rejection_reason']
-        
-        return data
 
+        return data
 
 #قسم شهد
 from rest_framework import serializers
