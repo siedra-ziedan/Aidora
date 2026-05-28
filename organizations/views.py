@@ -312,7 +312,7 @@ class TaskListAPIView(APIView):
 
         return Response({
         "pending": stats["pending"],
-        "approved": stats["failed"],
+        "failed": stats["failed"],
         "completed": stats["completed"],
         "tasks": task_serializer.data
         })
