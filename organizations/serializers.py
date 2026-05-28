@@ -315,10 +315,6 @@ class TaskSerializer(serializers.ModelSerializer):
         source='service_request_id.location'
     )
 
-    service_request_status = serializers.CharField(
-        source='service_request_id.status'
-    )
-
     date = serializers.SerializerMethodField()
 
     class Meta:
@@ -330,7 +326,7 @@ class TaskSerializer(serializers.ModelSerializer):
             'title',
             'volunteer_full_name',
             'location',
-            'service_request_status',
+            'status',
             'date',
             'rejection_reason',
         ]
