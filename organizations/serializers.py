@@ -269,26 +269,19 @@ class AssignTaskGetSerializer(serializers.ModelSerializer):
             'volunteers'
         ]
 
-
     def get_volunteers(self, obj):
         request = self.context.get('request')
-        search = request.query_params.get('search', '')
 
         volunteers = VolunteerProfile.objects.filter(
             organization=request.user.organization
         )
 
-        if search:
-            volunteers = volunteers.filter(
-                full_name__istartswith=search
-            )
-
         return [
             {
-                "id": v.id,
-                "full_name": v.full_name
+                "id": volunteer.id,
+                "full_name": volunteer.full_name
             }
-            for v in volunteers
+            for volunteer in volunteers
         ]
 class AssignTaskResponseSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source='volunteer_id.full_name')
