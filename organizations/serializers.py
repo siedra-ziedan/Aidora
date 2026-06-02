@@ -283,6 +283,31 @@ class AssignTaskGetSerializer(serializers.ModelSerializer):
             }
             for volunteer in volunteers
         ]
+    
+class ApprovedServiceRequestSerializer(serializers.ModelSerializer):
+    refugee_name = serializers.CharField(source='refugee.full_name')
+    service_name = serializers.CharField(source='service.name')
+    service_icon = serializers.CharField(source='service.icon')
+
+    class Meta:
+        model = ServiceRequest
+        fields = [
+            'id',
+            'refugee_name',
+            'service_name',
+            'service_icon'
+        ]
+
+
+class VolunteerListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = VolunteerProfile
+        fields = [
+            'id',
+            'full_name'
+        ]
+
 class AssignTaskResponseSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source='volunteer_id.full_name')
     created_at = serializers.SerializerMethodField()

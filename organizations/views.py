@@ -347,8 +347,84 @@ class ReassignTaskAPIView(APIView):
             "task_id": task.id,
             "status": task.status
         })
+from .serializers import VolunteerListSerializer,ApprovedServiceRequestSerializer
+class AssignTaskListAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsRole]
+    allowed_roles = ["organization"]
 
+    def get(self, request):
 
+        service_requests = ServiceRequest.objects.filter(
+            organization=request.user.organization,
+            status='approved'
+        )
+
+        volunteers = VolunteerProfile.objects.filter(
+            organization=request.user.organization
+        )
+
+        return Response({
+            "service_requests": ApprovedServiceRequestSerializer(
+                service_requests,
+                many=True
+            ).data,
+            "volunteers": VolunteerListSerializer(
+                volunteers,
+                many=True
+            ).data
+        })
+
+    def post(self, request):
+
+        service_request_id = request.data.get("service_request_id")
+        volunteer_id = request.data.get("volunteer_id")
+        title = request.data.get("title")
+        instructions = request.data.get("instructions")
+
+        service_request = get_object_or_404(
+            ServiceRequest,
+            id=service_request_id,
+            organization=request.user.organization,
+            status='approved'
+        )
+
+        if Task.objects.filter(
+            service_request_id=service_request
+        ).exists():
+            return Response(
+                {"error": "Task already assigned"},
+                status=400
+            )
+
+        volunteer = get_object_or_404(
+            VolunteerProfile,
+            id=volunteer_id,
+            organization=request.user.organization
+        )
+
+        task = Task.objects.create(
+            service_request_id=service_request,
+            volunteer_id=volunteer,
+            title=title,
+            instructions=instructions
+        )
+
+        notification_message = (
+            f"You can pick up the service request "
+            f"{service_request.service.name}. "
+            f"The task has been assigned to "
+            f"{volunteer.full_name}."
+        )
+
+        Notification.objects.create(
+            user=volunteer.user,
+            message=notification_message,
+            notification_type="assigned"
+        )
+
+        serializer = AssignTaskResponseSerializer(task)
+
+        return Response(serializer.data, status=201)
 
 #قسم شهد
 from django.shortcuts import render
